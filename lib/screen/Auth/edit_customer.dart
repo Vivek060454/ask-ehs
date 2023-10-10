@@ -9,6 +9,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
 
 import '../../bloc/blocs/customer_bloc.dart';
 import '../../theme.dart';
@@ -312,6 +313,9 @@ class _EditCustomerState extends State<EditCustomer> {
                             height: 20,
                           ),
 
+                          Align(
+                              alignment: Alignment.topLeft,
+                              child: Text('Date of Birth',style: TextStyle(fontSize: 13,fontWeight: FontWeight.w500),)),
                           Padding(
                             padding: const EdgeInsets.only(top: 8),
                             child: Container(
@@ -322,20 +326,22 @@ class _EditCustomerState extends State<EditCustomer> {
                               ),
                               child: Table(
                                 columnWidths: {
-                                  0: FlexColumnWidth(2),
+                                  0: FlexColumnWidth(1),
                                   1: FlexColumnWidth(4)
                                 },
                                 children: [
                                   TableRow(
                                       children: [
-                                        IconButton(onPressed: () {},
+                                        IconButton(onPressed: () {
+                                          _selectDate(context);
+                                        },
                                             icon: Icon(Icons.date_range)),
                                         Container(
 
                                           child: Padding(
-                                            padding: const EdgeInsets.all(8.0),
+                                            padding: const EdgeInsets.only(top: 15),
                                             child: Text(
-                                                selectedDate.toString()),
+                                                selectedDate.day.toString()+"-"+ selectedDate.month.toString()+"-"+ selectedDate.year.toString()),
                                           ),
                                         ),
                                       ]
