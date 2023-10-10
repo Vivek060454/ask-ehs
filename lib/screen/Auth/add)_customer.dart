@@ -9,43 +9,57 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
 
 import '../../bloc/blocs/customer_bloc.dart';
 import '../../theme.dart';
 
 
-class AddCustomer extends StatefulWidget {
-  const AddCustomer({Key? key}) : super(key: key);
+class EditCustomer extends StatefulWidget {
+  final dta;
+   EditCustomer(this.dta,  {Key? key}) : super(key: key);
 
   @override
-  State<AddCustomer> createState() => _AddCustomerState();
+  State<EditCustomer> createState() => _EditCustomerState();
 }
 
-class _AddCustomerState extends State<AddCustomer> {
+class _EditCustomerState extends State<EditCustomer> {
   final _formKey = GlobalKey<FormState>();
+  DateTime selectedDate = DateTime.now();
+  final TextEditingController name = TextEditingController();
+  final TextEditingController city = TextEditingController();
+  final TextEditingController state = TextEditingController();
+  String imageName = '';
+  late XFile imagePath;
+  final ImagePicker _picker = ImagePicker();
 
-  var countryValue;
-  var stateValue;
+@override
+  void initState() {
 
-  var cityValue;
-
-  dta() {
-    print('sfgbdgr');
+    name.text==widget.dta.name.toString()??'';
+    city.text==widget.dta.city.toString()??'';
+    state.text==widget.dta.state.toString()??'';
+    // name==widget.dta.name??'';
+    selectedDate==widget.dta.dob?? DateTime.now();
+    // TODO: implement initState
+    super.initState();
   }
-
 
   // Create a global key that uniquely identifies the Form widget
   // and allows validation of the form.
 
 //  final TextEditingController  _brandController = new TextEditingController();
-  final TextEditingController name = TextEditingController();
-  String imageName = '';
-  late XFile imagePath;
-  final ImagePicker _picker = ImagePicker();
 
-  DateTime selectedDate = DateTime.now();
+
 
   upload() async {
+  if(imageName==''){
+
+    context.read<ProfileBloc>().add(updatedata(
+        widget.dta.id, name.text, state.text, city.text, widget.dta.image.toString(),
+        selectedDate.toString()));
+  }
+  else {
     UploadTask? uploadTask;
     UploadTask? uploadTask1;
     UploadTask? uploadTask2;
@@ -57,20 +71,21 @@ class _AddCustomerState extends State<AddCustomer> {
     final snapshot = await uploadTask;
     var url = await snapshot.ref.getDownloadURL();
     print('url$url');
-    print('countryValue$countryValue');
-    print('stateValue$stateValue');
-    print('cityValue$cityValue');
-    // Fluttertoast.showToast(msg: "Enter all details$countryValue$url$stateValue$cityValue'");
-    context.read<ProfileBloc>().add(adddata(name.text,stateValue.toString(),countryValue.toString(),cityValue.toString(),url.toString(),selectedDate.toString()));
-cleartext();
+    // print('countryValue$countryValue');
+    // print('stateValue$stateValue');
+    // print('cityValue$cityValue');
+    context.read<ProfileBloc>().add(updatedata(
+        widget.dta.id, name.text, state.text, city.text, url.toString(),
+        selectedDate.toString()));
   }
-cleartext(){
-  countryValue.clear();
-  stateValue.clear();
-  cityValue.clear();
-
-}
-
+    clearText();
+    // Fluttertoast.showToast(msg: "Enter all details$countryValue$url$stateValue$cityValue'");
+  }
+  clearText(){
+    name.clear();
+    city.clear();
+    state.clear();
+  }
 
   @override
   void dispose() {
@@ -79,6 +94,7 @@ cleartext(){
 
     super.dispose();
   }
+
 
 
   Future<void> _selectDate(BuildContext context) async {
@@ -98,7 +114,7 @@ cleartext(){
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          title: Text('Add User'),
+          title: Text('Update Customer '),
         ),
         backgroundColor: Mytheme().primary,
         body: SingleChildScrollView(
@@ -131,8 +147,8 @@ cleartext(){
                                     borderRadius:
                                     BorderRadius.all(Radius.circular(80)),
                                     child: FadeInImage.assetNetwork(
-                                      placeholder: 'assets/images.jpeg',
-                                      image: "https://firebasestorage.googleapis.com/v0/b/askehs-8a16d.appspot.com/o/images.jpeg?alt=media&token=86157703-245b-4e9c-a90f-9ac7d51b9894&_gl=1*1eyad72*_ga*MTU2ODEwMTc1NC4xNjk2OTEwNzk0*_ga_CW55HF8NVT*MTY5NjkxMDc5My4xLjEuMTY5NjkxMTgzNi4xMC4wLjA."
+                                        placeholder: 'assets/images.jpeg',
+                                        image:widget.dta.image.toString()
                                       //fit: BoxFit.cover,
                                     )),
                               ),
@@ -163,7 +179,7 @@ cleartext(){
                                           color: Mytheme().primary,
                                         ),
                                         child: Icon(
-                                          Icons.camera_alt,
+                                          Icons.edit,
                                           color: Colors.white,
                                         ))),
                               ),
@@ -216,7 +232,7 @@ cleartext(){
                                           color: Mytheme().primary,
                                         ),
                                         child: Icon(
-                                          Icons.camera_alt,
+                                          Icons.edit,
                                           color: Colors.white,
                                         ))),
                               ),
@@ -248,27 +264,58 @@ cleartext(){
                           SizedBox(
                             height: 20,
                           ),
-
-                          CSCPicker(
-                            onCountryChanged: (value) {
-                              dta();
-                              setState(() {
-                                dta();
-                                countryValue = value;
-                              });
+                          TextFormField(
+                            autofocus: false,
+                            controller: state,
+                            keyboardType: TextInputType.emailAddress,
+                            onSaved: (value) {
+                              state.text = value!;
                             },
-                            onStateChanged: (value) {
-                              setState(() {
-                                stateValue = value;
-                              });
-                            },
-                            onCityChanged: (value) {
-                              setState(() {
-                                dta();
-                                cityValue = value;
-                              });
+                            textInputAction: TextInputAction.next,
+                            decoration: InputDecoration(
+                              // prefixIcon: Icon(Icons.email),
+                                contentPadding: EdgeInsets.fromLTRB(
+                                    20, 15, 20, 15),
+                                hintText: "Enter state",
+                                border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(10))),
+                            validator: (state) {
+                              if (state!.isEmpty) {
+                                return ("Please enter state");
+                              }
                             },
                           ),
+                          SizedBox(
+                            height: 20,
+                          ),
+                          TextFormField(
+                            autofocus: false,
+                            controller: city,
+                            keyboardType: TextInputType.emailAddress,
+                            onSaved: (value) {
+                              city.text = value!;
+                            },
+                            textInputAction: TextInputAction.next,
+                            decoration: InputDecoration(
+                              // prefixIcon: Icon(Icons.email),
+                                contentPadding: EdgeInsets.fromLTRB(
+                                    20, 15, 20, 15),
+                                hintText: "Enter city",
+                                border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(10))),
+                            validator: (city) {
+                              if (city!.isEmpty) {
+                                return ("Please enter city");
+                              }
+                            },
+                          ),
+                          SizedBox(
+                            height: 20,
+                          ),
+
+                          Align(
+                              alignment: Alignment.topLeft,
+                              child: Text('Date of Birth',style: TextStyle(fontSize: 13,fontWeight: FontWeight.w500),)),
                           Padding(
                             padding: const EdgeInsets.only(top: 8),
                             child: Container(
@@ -279,7 +326,7 @@ cleartext(){
                               ),
                               child: Table(
                                 columnWidths: {
-                                  0: FlexColumnWidth(2),
+                                  0: FlexColumnWidth(1),
                                   1: FlexColumnWidth(4)
                                 },
                                 children: [
@@ -292,9 +339,9 @@ cleartext(){
                                         Container(
 
                                           child: Padding(
-                                            padding: const EdgeInsets.all(8.0),
+                                            padding: const EdgeInsets.only(top: 15),
                                             child: Text(
-                                                selectedDate.toString()),
+                                                selectedDate.day.toString()+"-"+ selectedDate.month.toString()+"-"+ selectedDate.year.toString()),
                                           ),
                                         ),
                                       ]
@@ -312,13 +359,13 @@ cleartext(){
                             onTap: () async {
                               print('rg');
                               if (_formKey.currentState!.validate()) {
-if(imageName==''||cityValue==null||countryValue==null||stateValue==null){
-  Fluttertoast.showToast(msg: "Enter all details");
-  print('fgh');
+                                if(city.text==''||state.text==''){
+                                  Fluttertoast.showToast(msg: "Enter all details");
+                                  print('fgh');
 
-}
-else{
-upload();}
+                                }
+                                else{
+                                  upload();}
                               }
                             },
                             child: Container(
@@ -333,7 +380,7 @@ upload();}
                                 borderRadius: BorderRadius.circular(20),
                               ),
                               child: Center(
-                                child: Text('ADD',
+                                child: Text('Update',
 
                                   style: TextStyle(fontSize: 20,
                                       color: Colors.white,
